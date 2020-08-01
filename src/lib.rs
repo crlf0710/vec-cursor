@@ -4,7 +4,7 @@ extern crate alloc;
 use alloc::fmt;
 use alloc::vec::Vec;
 
-trait VecCursor<T> {
+pub trait VecCursor<T> {
     fn cursor_front(&self) -> Cursor<'_, T>;
     fn cursor_front_mut(&mut self) -> CursorMut<'_, T>;
     fn cursor_back(&self) -> Cursor<'_, T>;
