@@ -4,9 +4,50 @@ extern crate alloc;
 use alloc::fmt;
 use alloc::vec::Vec;
 
+trait VecCursor<T> {
+    fn cursor_front(&self) -> Cursor<'_, T>;
+    fn cursor_front_mut(&mut self) -> CursorMut<'_, T>;
+    fn cursor_back(&self) -> Cursor<'_, T>;
+    fn cursor_back_mut(&mut self) -> CursorMut<'_, T>;
+}
+
+impl<T> VecCursor<T> for Vec<T> {
+    fn cursor_front(&self) -> Cursor<'_, T> {
+        Cursor {
+            index: 0,
+            vec: self,
+        }
+    }
+    fn cursor_front_mut(&mut self) -> CursorMut<'_, T> {
+        CursorMut {
+            index: 0,
+            vec: self,
+        }
+    }
+    fn cursor_back(&self) -> Cursor<'_, T> {
+        Cursor {
+            index: self.len().checked_sub(1).unwrap_or(0),
+            vec: self,
+        }
+    }
+    fn cursor_back_mut(&mut self) -> CursorMut<'_, T> {
+        CursorMut {
+            index: self.len().checked_sub(1).unwrap_or(0),
+            vec: self,
+        }
+    }
+}
+
 pub struct Cursor<'a, T: 'a> {
     index: usize,
     vec: &'a Vec<T>,
+}
+
+impl<T> Clone for Cursor<'_, T> {
+    fn clone(&self) -> Self {
+        let Cursor { index, vec } = *self;
+        Cursor { index, vec }
+    }
 }
 
 impl<T: fmt::Debug> fmt::Debug for Cursor<'_, T> {
@@ -208,3 +249,8 @@ impl<'a, T> CursorMut<'a, T> {
         result
     }
 }
+
+unsafe impl<T: Sync> Send for Cursor<'_, T> {}
+unsafe impl<T: Sync> Sync for Cursor<'_, T> {}
+unsafe impl<T: Send> Send for CursorMut<'_, T> {}
+unsafe impl<T: Sync> Sync for CursorMut<'_, T> {}
